@@ -1,0 +1,50 @@
+
+name: Build HomeHotel APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '*.zip'
+      - '.github/workflows/android-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        run: |
+          mkdir project
+          unzip -q ./*.zip -d project
+          FILE=$(find project -name settings.gradle.kts -print -quit)
+          if [ -z "$FILE" ]; then
+            echo "Project settings.gradle.kts not found"
+            exit 1
+          fi
+          DIR=$(dirname "$FILE")
+          cp -a "$DIR"/. .
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HomeHotel-APK
+          path: app/build/outputs/apk/debug/*.apk
+          
