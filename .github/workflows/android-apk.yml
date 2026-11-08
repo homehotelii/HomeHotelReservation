@@ -27,6 +27,16 @@ jobs:
           fi
           DIR=$(dirname "$FILE")
           cp -a "$DIR"/. .
+                - name: Inspect Gradle configuration
+        run: |
+          echo "=== Gradle configuration files ==="
+          find . -type f \( -name 'build.gradle.kts' -o -name 'settings.gradle.kts' -o -name 'libs.versions.toml' \) -not -path './.git/*' -print
+          for f in settings.gradle.kts build.gradle.kts app/build.gradle.kts gradle/libs.versions.toml; do
+            if [ -f "$f" ]; then
+              echo "===== $f ====="
+              sed -n '1,240p' "$f"
+            fi
+          done
 
       - name: Set up Java
         uses: actions/setup-java@v4
